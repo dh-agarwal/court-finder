@@ -1,7 +1,7 @@
-import os
 import cv2
 import numpy as np
 from sklearn.cluster import DBSCAN
+import itertools
 
 def merge_similar_lines(lines, angle_threshold=10, distance_threshold=10):
     if lines is None:
@@ -82,46 +82,59 @@ def merge_close_intersections(intersections, distance_threshold=10):
 
     return merged_intersections
 
-def find_tennis_courts(intersections, ratio_tolerance=0.1):
-    distances = {
-        'doubles_ally': 4.5,
-        'service_box_width': 13.5,
-        'baseline_to_service_line': 18,
-        'court_width': 27
+def find_tennis_courts(intersections, ratio_tolerance=0.2):
+    expected_distances = {
+        'doubles_alley_width': 25.50,
+        'service_box_width': 74.22,
+        'baseline_to_service_line': 101.39,
+        'court_width': 150.15,
+        'service_outer_alley_width': 25.50,
+        'service_line_to_middle': 76.66
     }
 
     def distance(p1, p2):
         return np.linalg.norm(np.array(p1) - np.array(p2))
 
+    def is_within_tolerance(actual, expected, tolerance):
+        return expected * (1 - tolerance) <= actual <= expected * (1 + tolerance)
+
     def is_tennis_court(points):
-        points = sorted(points, key=lambda p: (p[0], p[1]))
-        base_line_points = [points[0], points[1], points[2]]
-        service_line_points = [points[3], points[4], points[5]]
+        if len(points) != 9:
+            return False
         
-        ratios = [
-            (distance(base_line_points[0], base_line_points[1]) / distances['doubles_ally']),
-            (distance(base_line_points[1], base_line_points[2]) / distances['court_width']),
-            (distance(service_line_points[0], service_line_points[1]) / distances['doubles_ally']),
-            (distance(service_line_points[1], service_line_points[2]) / distances['court_width']),
-            (distance(base_line_points[0], service_line_points[0]) / distances['baseline_to_service_line']),
-            (distance(base_line_points[1], service_line_points[1]) / distances['baseline_to_service_line']),
-            (distance(base_line_points[2], service_line_points[2]) / distances['baseline_to_service_line']),
-        ]
-        
-        for ratio in ratios:
-            if not (1 - ratio_tolerance <= ratio <= 1 + ratio_tolerance):
-                return False
-        
-        return True
+        # Check all permutations of the points to avoid missing correct pairs
+        for perm in itertools.permutations(points):
+            points = np.array(perm)
+            
+            d1 = distance(points[0], points[1])
+            d2 = distance(points[1], points[2])
+            d3 = distance(points[3], points[4])
+            d4 = distance(points[4], points[5])
+            d5 = distance(points[0], points[3])
+            d6 = distance(points[1], points[4])
+            d7 = distance(points[2], points[5])
+            d8 = distance(points[0], points[6])
+            d9 = distance(points[1], points[7])
+            d10 = distance(points[2], points[8])
+
+            if (is_within_tolerance(d1, expected_distances['doubles_alley_width'], ratio_tolerance) and
+                is_within_tolerance(d2, expected_distances['court_width'], ratio_tolerance) and
+                is_within_tolerance(d3, expected_distances['doubles_alley_width'], ratio_tolerance) and
+                is_within_tolerance(d4, expected_distances['court_width'], ratio_tolerance) and
+                is_within_tolerance(d5, expected_distances['baseline_to_service_line'], ratio_tolerance) and
+                is_within_tolerance(d6, expected_distances['baseline_to_service_line'], ratio_tolerance) and
+                is_within_tolerance(d7, expected_distances['baseline_to_service_line'], ratio_tolerance) and
+                is_within_tolerance(d8, expected_distances['baseline_to_service_line'], ratio_tolerance) and
+                is_within_tolerance(d9, expected_distances['baseline_to_service_line'], ratio_tolerance) and
+                is_within_tolerance(d10, expected_distances['baseline_to_service_line'], ratio_tolerance)):
+                return True
+
+        return False
 
     tennis_courts = []
-    for i, point in enumerate(intersections):
-        candidate_points = [point]
-        for other_point in intersections:
-            if point != other_point and distance(point, other_point) <= ratio_tolerance * max(distances.values()):
-                candidate_points.append(other_point)
-        if len(candidate_points) >= 6 and is_tennis_court(candidate_points):
-            tennis_courts.append(candidate_points)
+    for subset in itertools.combinations(intersections, 9):
+        if is_tennis_court(subset):
+            tennis_courts.append(subset)
     
     return tennis_courts
 
@@ -130,7 +143,7 @@ def mouse_callback(event, x, y, flags, param):
         print(f"Mouse position: ({x}, {y})")
 
 # Load the image
-image_path = '1.png'
+image_path = 'half.png'
 image = cv2.imread(image_path)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 blur = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -176,6 +189,7 @@ for line in filtered_lines:
 for point in unique_intersections:
     cv2.circle(output_image_normal, point, 5, (0, 0, 255), -1)  # Red dots
     cv2.circle(output_image_edges, point, 5, (0, 0, 255), -1)  # Red dots
+print(unique_intersections)
 
 # Draw rectangles around detected tennis courts
 for court in tennis_courts:
