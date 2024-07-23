@@ -51,7 +51,7 @@ output_folder = 'tennis_court_images'
 os.makedirs(output_folder, exist_ok=True)
 
 # Pick 1000 random rows and save images
-for i in range(1000, 2000):
+for i in range(2000, 3000):
     row = outdoor_courts.sample(n=1).iloc[0]
     lat = row['latitude']
     lon = row['longitude']
