@@ -1,5 +1,7 @@
-data/tennis_court_images/
-data/non_tennis_court_images/
+data/old/tennis_court_images/
+data/old/non_tennis_court_images/
+non_tennis_court_images/
+tennis_court_images/
 
 .env
 
