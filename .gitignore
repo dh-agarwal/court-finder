@@ -2,12 +2,11 @@ data/old/tennis_court_images/
 data/old/non_tennis_court_images/
 non_tennis_court_images/
 tennis_court_images/
+data/non_tennis_courts/
+data/tennis_courts/
 
 .env
 
-dataset/test/not_tennis_court/
-dataset/test/tennis_court/
-dataset/train/not_tennis_court/
-dataset/train/tennis_court/
-dataset/validation/not_tennis_court/
-dataset/validation/tennis_court/
+dataset/
+
+dataset.zip

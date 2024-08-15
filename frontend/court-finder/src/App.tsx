@@ -4,17 +4,40 @@ import './App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const App: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [location, setLocation] = useState<string>('');
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleFindCourts = () => {
+    console.log(`Finding courts near: ${location}`);
+  };
+
   return (
     <div className="App">
       <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
-        <h2>Sidebar</h2>
-        <p>Additional content here</p>
+        <h2>CourtFind</h2>
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Enter location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="search-input"
+          />
+          <button className="search-button">
+            <i className="fas fa-map-marker-alt"></i>
+          </button>
+        </div>
+        <button onClick={handleFindCourts} className="find-button">
+          Find Courts
+        </button>
+        <div className="sidebar-footer">
+          <p>Dhruv Agarwal | dhruv.agarwals@gmail.com</p>
+          <p>v 1.0.0</p>
+        </div>
       </div>
       <div className="map-container">
         <Map />
