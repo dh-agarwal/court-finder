@@ -9,5 +9,5 @@ data/tennis_courts/
 
 dataset/
 
-dataset.zip
+data/dataset.zip
 tennis_court_classifier.keras
