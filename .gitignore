@@ -10,3 +10,4 @@ data/tennis_courts/
 dataset/
 
 dataset.zip
+tennis_court_classifier.keras
