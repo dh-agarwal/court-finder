@@ -1,10 +1,10 @@
 import React, { useState, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { GoogleMap, LoadScript, Marker, Circle } from '@react-google-maps/api';
+import { GoogleMap, Marker, Circle } from '@react-google-maps/api';
 import axios from 'axios';
 
 const containerStyle = {
   width: '100%',
-  height: '100vh',
+  height: '100%',
 };
 
 const Map = forwardRef((props, ref) => {
@@ -15,33 +15,33 @@ const Map = forwardRef((props, ref) => {
   const mapRef = useRef<google.maps.Map | null>(null);
 
   useImperativeHandle(ref, () => ({
-    findCourts: handleFindCourts, // Expose findCourts method to the parent component
+    findCourts,
   }));
 
   const initializeRectangle = useCallback(() => {
-    if (mapRef.current && !rectangleRef.current) {
-      const userLocation = center;
+    if (mapRef.current && center) {
+      const latOffset = 0.009;
+      const lngOffset = 0.009;
 
-      if (userLocation) {
-        const latOffset = 0.009;
-        const lngOffset = 0.009;
+      const bounds = new window.google.maps.LatLngBounds(
+        new window.google.maps.LatLng(center.lat - latOffset, center.lng - lngOffset),
+        new window.google.maps.LatLng(center.lat + latOffset, center.lng + lngOffset)
+      );
 
-        const bounds = new window.google.maps.LatLngBounds(
-          new window.google.maps.LatLng(userLocation.lat - latOffset, userLocation.lng - lngOffset),
-          new window.google.maps.LatLng(userLocation.lat + latOffset, userLocation.lng + lngOffset)
-        );
-
+      if (!rectangleRef.current) {
         const rectangle = new window.google.maps.Rectangle({
           bounds,
           editable: true,
           draggable: true,
           map: mapRef.current,
-          fillColor: 'rgba(0, 0, 255, 0.3)', // Blue fill with higher opacity
+          fillColor: 'rgba(0, 0, 255, 0.3)',
           strokeColor: 'dodgerblue',
           strokeWeight: 2,
         });
 
         rectangleRef.current = rectangle;
+      } else {
+        rectangleRef.current.setBounds(bounds); // Adjust the rectangle bounds when the center changes
       }
     }
   }, [center]);
@@ -77,14 +77,14 @@ const Map = forwardRef((props, ref) => {
   const handleMapLoad = (map) => {
     mapRef.current = map;
     initializeMap();
-    setTimeout(() => {
-      const xOffset = -window.innerWidth * 0.07;
-      const yOffset = 0;
-      map.panBy(xOffset, yOffset);
-    }, 30);
   };
 
-  const handleFindCourts = async () => {
+  const findCourts = async (newCenter) => {
+    if (newCenter) {
+      setCenter(newCenter);
+      mapRef.current.panTo(newCenter);
+    }
+
     if (!rectangleRef.current) return;
 
     const bounds = rectangleRef.current.getBounds();
@@ -102,7 +102,6 @@ const Map = forwardRef((props, ref) => {
       });
 
       const courts = response.data.tennis_courts;
-      console.log(courts)
       setTennisCourts(courts);
     } catch (error) {
       console.error('Error finding courts:', error);
@@ -125,33 +124,31 @@ const Map = forwardRef((props, ref) => {
     : {};
 
   return (
-    <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={15}
-        options={mapOptions}
-        onLoad={handleMapLoad}
-        onTilesLoaded={initializeRectangle} // Initialize the rectangle after tiles are loaded
-      >
-        {center && customMarkerIcon && <Marker position={center} icon={customMarkerIcon} />}
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={15}
+      options={mapOptions}
+      onLoad={handleMapLoad}
+      onTilesLoaded={initializeRectangle}
+    >
+      {center && customMarkerIcon && <Marker position={center} icon={customMarkerIcon} />}
 
-        {tennisCourts.map((court, index) => (
-          <Circle
-            key={index}
-            center={{ lat: court.latitude, lng: court.longitude }}
-            radius={50} // Radius of the circle in meters
-            options={{
-              fillColor: 'green',
-              fillOpacity: 0.5,
-              strokeColor: 'darkgreen',
-              strokeOpacity: 0.8,
-              strokeWeight: 2,
-            }}
-          />
-        ))}
-      </GoogleMap>
-    </LoadScript>
+      {tennisCourts.map((court, index) => (
+        <Circle
+          key={index}
+          center={{ lat: court.latitude, lng: court.longitude }}
+          radius={50}
+          options={{
+            fillColor: 'green',
+            fillOpacity: 0.5,
+            strokeColor: 'darkgreen',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+          }}
+        />
+      ))}
+    </GoogleMap>
   );
 });
 

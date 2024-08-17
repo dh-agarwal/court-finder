@@ -1,4 +1,3 @@
-/* src/App.css */
 html, body, #root, .App {
   margin: 0;
   padding: 0;
@@ -11,176 +10,103 @@ html, body, #root, .App {
   font-family: 'Arial', sans-serif; /* Consistent font for entire app */
 }
 
-.sidebar {
-  height: 100vh;
-  background-color: #293241; /* Darker color for sidebar */
-  padding: 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5); /* Subtle shadow */
-  color: #ffffff; /* Ensure text in sidebar is white for contrast */
-  transition: transform 0.3s ease;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 24vw; /* Increased width to accommodate larger elements */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.sidebar.closed {
-  transform: translateX(-100%);
-}
-
-.sidebar h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 2em; /* Larger font size for the title */
-}
-
-.search-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-  margin-top: 10px;
-  position: relative;
-}
-
-.search-input {
+.navbar {
   width: 100%;
-  padding: 12px 60px 12px 15px; /* Adjust padding to make space for the location icon */
-  background-color: #3a4750; /* Slightly lighter background for input */
+  height: 8%; /* Fixed height for the navbar */
+  background-color: #293241;
+  color: #ffffff;
+  padding: 0 20px; /* Adjust padding to better center items */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-title {
+  font-size: 2.0em;
+  font-weight: bold;
+  margin-right: 20px; /* Ensure the title doesn't overlap with the search input */
+}
+
+.navbar-location {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center; /* Centers the input horizontally */
+  align-items: center; /* Vertically centers the input */
+  position: relative;
+  max-width: 30%; /* Limit the maximum width of the entire search area */
+}
+
+.navbar-location input {
+  width: 100%; /* Use full width of the container */
+  padding: 10px;
+  padding-right: 40px; /* Add padding to the right for the icon */
   border: 1px solid #fff;
   border-radius: 5px;
-  color: #fff;
-  font-family: 'Arial', sans-serif; /* Ensure font consistency */
-  font-size: 1.1em; /* Slightly larger font size for the input */
-  font-weight: bold; /* Bold font to match the emphasis of the Find Courts button */
+  color: #ffffff;
+  background-color: #3a4750;
+  font-family: 'Arial', sans-serif;
+  font-size: 1.1em;
+  box-sizing: border-box; /* Ensure padding and width work together */
 }
 
 .search-button {
   position: absolute;
-  right: 3px;
-  top: 50%;
+  right: 3px; /* Adjust positioning to fit inside the input */
+  top: 49.25%;
   transform: translateY(-50%);
-  background-color: #4CAF50; /* Match the Find Courts button background */
-  border: 1px solid #4CAF50; /* Outline the button */
-  border-radius: 5px;
+  background-color: #4CAF50; /* Match the green color */
   color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px;
   cursor: pointer;
-  padding: 8px 10px;
 }
 
 .search-button i {
   font-size: 1.2em;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.search-button:hover {
+  background-color: #3a813d;
 }
 
 .find-button {
-  width: 50%; /* Reduced width */
-  padding: 12px;
-  background-color: #4CAF50; /* Green background for find button */
+  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 5px;
+  padding: 10px 20px;
   cursor: pointer;
-  text-align: center;
-  margin: 0 auto 20px; /* Center the button with reduced width */
-  display: block;
-  font-family: 'Arial', sans-serif; /* Ensure font consistency */
-  font-size: 1.1em; /* Match the font size of the search input */
+  font-family: 'Arial', sans-serif;
+  font-size: 1.1em;
   font-weight: bold;
+  margin-right: 2%; /* Added margin to separate it from the input */
 }
 
 .find-button:hover {
-  background-color: #3a813d; /* Darker green on hover */
-}
-
-.sidebar-footer {
-  text-align: center;
-  margin-top: auto;
-  margin-bottom: 30px;
-  color: #b0b0b0; /* Gray color for deprioritized text */
-  font-size: 0.8em;
-}
-
-.sidebar-footer p {
-  margin: 3px 0;
+  background-color: #3a813d;
 }
 
 .map-container {
   width: 100%;
-  height: 100vh;
-  position: absolute;
+  height: calc(100vh - 60px); /* Adjust map height based on navbar height */
+  position: relative;
   top: 0;
-  left: 0;
-  z-index: 0;
+  overflow: hidden; /* Ensure no part of the map extends below the bottom bar */
 }
 
-.toggle-button {
+.footer-overlay {
   position: absolute;
-  top: 50%;
-  left: calc(24vw - 20px); /* Adjusted position to match new sidebar width */
-  transform: translate(-50%, -50%);
-  background-color: #293241; /* Same background color as sidebar */
-  color: #fff;
-  border: 1px solid black; /* Black outline */
-  border-radius: 10px;
-  padding: 10px;
-  cursor: pointer;
-  transition: left 0.3s ease, background-color 0.3s ease;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 50px;
-  outline: none; /* Remove blue outline on focus */
-  box-shadow: 3px 0px 3px rgba(0, 0, 0, 0.3); /* Less intense shadow on the right side */
-}
-
-.toggle-button i {
-  font-size: 1.5em;
-}
-
-.sidebar.open ~ .toggle-button {
-  left: calc(24vw + 40px); /* Adjusted to match the new sidebar width */
-}
-
-.sidebar.closed ~ .toggle-button {
-  left: 10px;
-}
-
-.toggle-button:focus,
-.toggle-button:active,
-.toggle-button:hover {
-  outline: none; /* Remove blue outline on focus, active, and hover */
-  border-color: black !important; /* Ensure the border color remains black */
-  background-color: #3a4750; /* Slightly darker shade on hover */
-  box-shadow: 3px 0px 5px rgba(0, 0, 0, 0.4); /* Less intense shadow on hover */
-}
-
-.custom-marker {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  background-color: red; /* You can change the color as needed */
-  border: 2px solid white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%); /* Center the marker */
-  z-index: 10; /* Ensure the marker is above the map */
-}
-
-.custom-marker:before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+  bottom: 0px;
+  left: 0px;
+  background-color: rgba(41, 50, 65); /* Dark background with some transparency */
+  color: #b0b0b0;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  text-align: right;
+  z-index: 10; /* Ensure it is above the map */
 }
