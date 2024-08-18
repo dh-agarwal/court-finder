@@ -10,11 +10,13 @@ from io import BytesIO
 import os
 from dotenv import load_dotenv
 import math
+from flask_socketio import SocketIO, emit
 import cv2
 
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Enable SocketIO
 model = load_model('tennis_court_classifier.keras')
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 
@@ -108,18 +110,20 @@ def find_courts():
     lat_bottom_right = float(request.args.get('lat_bottom_right'))
     lon_bottom_right = float(request.args.get('lon_bottom_right'))
     
-    print(lat_top_left)
-    print(lon_top_left)
-    print(lat_bottom_right)
-    print(lon_bottom_right)
-
     if not (lat_top_left and lon_top_left and lat_bottom_right and lon_bottom_right):
         return jsonify({"error": "Please provide top-left and bottom-right coordinates"}), 400
 
     coords = get_grid_coordinates((lat_top_left, lon_top_left), (lat_bottom_right, lon_bottom_right))
-    print(len(coords))
+    
+    
+    # Notify client that image fetching is starting
+    socketio.emit('status', {'message': 'Fetching images'})
     
     images = asyncio.run(get_google_maps_images_async(coords))
+    print(len(images))
+    # Notify client that image fetching is complete and scanning is starting
+    socketio.emit('status', {'message': 'Scanning region'})
+    
     tennis_courts = []
 
     for i, img in enumerate(images):
@@ -134,23 +138,5 @@ def find_courts():
     
     return jsonify({"tennis_courts": tennis_courts})
 
-# Prediction endpoint
-@app.route('/predict', methods=['GET'])
-def predict():
-    lat = request.args.get('lat')
-    lon = request.args.get('lon')
-    if not lat or not lon:
-        return jsonify({"error": "Please provide latitude and longitude"}), 400
-
-    img = asyncio.run(get_google_maps_images_async([(float(lat), float(lon))]))[0]
-    if img is None:
-        return jsonify({"error": "Could not fetch image for the provided coordinates"}), 500
-
-    img_array = preprocess_image(img)
-    prediction = model.predict(img_array)
-    result = "Tennis Court" if is_tennis_court(prediction) else "Not a Tennis Court"
-
-    return jsonify({"latitude": lat, "longitude": lon, "result": result})
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

@@ -20,12 +20,12 @@ const Map = forwardRef((props, ref) => {
 
   const initializeRectangle = useCallback(() => {
     if (mapRef.current && center) {
-      const latOffset = 0.009;
-      const lngOffset = 0.009;
+      const mileToDegree = 0.014492753623188;
+      const offset = 0.75 * mileToDegree;
 
       const bounds = new window.google.maps.LatLngBounds(
-        new window.google.maps.LatLng(center.lat - latOffset, center.lng - lngOffset),
-        new window.google.maps.LatLng(center.lat + latOffset, center.lng + lngOffset)
+        new window.google.maps.LatLng(center.lat - offset, center.lng - offset),
+        new window.google.maps.LatLng(center.lat + offset, center.lng + offset)
       );
 
       if (!rectangleRef.current) {
@@ -110,24 +110,24 @@ const Map = forwardRef((props, ref) => {
 
   const mapOptions = center
     ? {
-        disableDefaultUI: false,
-        zoomControl: true,
-        zoomControlOptions: {
-          position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
-        },
-        streetViewControl: false,
-        fullscreenControl: false,
-        mapTypeId: window.google.maps.MapTypeId.HYBRID,
-        mapTypeControl: false,
-        rotateControl: false,
-      }
+      disableDefaultUI: false,
+      zoomControl: true,
+      zoomControlOptions: {
+        position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
+      },
+      streetViewControl: false,
+      fullscreenControl: false,
+      mapTypeId: window.google.maps.MapTypeId.HYBRID,
+      mapTypeControl: false,
+      rotateControl: false,
+    }
     : {};
 
   return (
     <GoogleMap
       mapContainerStyle={containerStyle}
       center={center}
-      zoom={15}
+      zoom={center ? 14 : undefined}  // Change this from 15 to 13 to zoom out
       options={mapOptions}
       onLoad={handleMapLoad}
       onTilesLoaded={initializeRectangle}

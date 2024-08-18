@@ -1,0 +1,38 @@
+.custom-bootstrap .input-group {
+  display: flex;
+  width: 100%;
+  max-width: 700px; /* Set a max-width for the input group */
+  margin: 0 auto;
+}
+
+.custom-bootstrap .form-control {
+  flex-grow: 1; /* Allow the input field to take up available space */
+  border-radius: 5px 0 0 5px;
+  width: 175%;
+  background-color: #3a4750;
+  color: #ffffff;
+  border: 1px solid #fff;
+  font-size: 1.1em;
+  padding: 10px;
+}
+
+.custom-bootstrap .btn-success {
+  background-color: #4CAF50;
+  border-color: #fff;
+  border-radius: 0 5px 5px 0;
+  padding: 10px 20px;
+  margin-left: 175px;
+  border-left: none;
+  display: flex;
+  align-items: center; /* Ensure the button is vertically centered */
+}
+
+.custom-bootstrap .btn-success:hover {
+  background-color: #3a813d; /* Darker green background on hover */
+  border-color: #fff; /* Keep the border color white on hover */
+  border-left: none; /* Ensure left border remains removed on hover */
+}
+
+.custom-bootstrap .form-control::placeholder {
+  color: #ffffff; /* Placeholder text color */
+}
