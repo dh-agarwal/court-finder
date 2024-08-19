@@ -25,6 +25,7 @@
   border-left: none;
   display: flex;
   align-items: center; /* Ensure the button is vertically centered */
+  transition: background-color 0.3s ease;
 }
 
 .custom-bootstrap .btn-success:hover {
@@ -34,5 +35,10 @@
 }
 
 .custom-bootstrap .form-control::placeholder {
-  color: #ffffff; /* Placeholder text color */
+  color: #b0b0b0; /* A lighter gray to indicate it is a placeholder */
+}
+
+.btn-success:focus {
+  outline: none;
+  box-shadow: none;
 }

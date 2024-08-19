@@ -1,40 +1,147 @@
 import React, { useRef, useState, useEffect } from 'react';
+import io from 'socket.io-client';
 import Map from './Map';
-import Spinner from './Spinner';
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import { useToken } from './TokenContext';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import './bootstrap-custom.css'; // Custom scoped Bootstrap styles
+import './bootstrap-custom.css';
 import './App.css';
 import { FaCoins, FaQuestionCircle, FaSearch, FaClock } from 'react-icons/fa';
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import logo from './assets/logo.png';
+import CustomModal from './CustomModal';
+
+const socket = io('http://localhost:5000'); // Connect to your Flask server
 
 const App: React.FC = () => {
-  const mapRef = useRef<{ findCourts: (center?: { lat: number; lng: number }) => void } | null>(null);
+  const mapRef = useRef<{ updateLocation: (center: { lat: number; lng: number }) => void; findCourts: () => void; getRectangleRef: () => google.maps.Rectangle | null } | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [location, setLocation] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>(''); // For loading messages
   const { tokens } = useToken();
 
-  const handleSearch = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [tokenCost, setTokenCost] = useState(0);
+  const [newCenter, setNewCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [rectangleSize, setRectangleSize] = useState<{ width: string; height: string }>({ width: '', height: '' });
+  const [courtCount, setCourtCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    socket.on('status', (data) => {
+      setLoadingMessage(data.message);
+    });
+
+    socket.on('complete', (data) => {
+      setLoading(false);  // Stop the loading spinner
+      setCourtCount(data.courtCount);  // Assuming courtCount is sent in the final response
+    });
+
+    return () => {
+      socket.off('status');
+      socket.off('complete');
+    };
+  }, []);
+
+  const handleLocationUpdate = () => {
     const place = autocompleteRef.current?.getPlace();
     if (place?.geometry?.location) {
-      const newCenter = {
+      const center = {
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
       };
+      setNewCenter(center);
       setLocation(place.formatted_address || '');
+
       if (mapRef.current) {
-        mapRef.current.findCourts(newCenter);
+        mapRef.current.updateLocation(center);
       }
+    } else {
+      console.error('Place not selected or location data not available');
     }
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleSearch();
+  // Function to calculate the token cost
+  const calculateTokenCost = (topLeft: { lat: number; lng: number }, bottomRight: { lat: number; lng: number }, boxSize = 140) => {
+    const toRadians = (degrees: number) => degrees * (Math.PI / 180);
+
+    const R = 6371e3; // Earth's radius in meters
+    const latStart = topLeft.lat;
+    const lonStart = topLeft.lng;
+    const latEnd = bottomRight.lat;
+    const lonEnd = bottomRight.lng;
+
+    const latStartRad = toRadians(latStart);
+    const lonStartRad = toRadians(lonStart);
+    const latEndRad = toRadians(latEnd);
+    const lonEndRad = toRadians(lonEnd);
+
+    const dLat = boxSize / R;
+    const dLon = boxSize / (R * Math.cos((latStartRad + latEndRad) / 2));
+
+    let lat = latStartRad;
+    let imageCount = 0;
+
+    while (lat > latEndRad) {
+      let lon = lonStartRad;
+      while (lon < lonEndRad) {
+        lon += dLon;
+        imageCount++;
+      }
+      lat -= dLat;
     }
+
+    return imageCount;
+  };
+
+  const handleSearch = () => {
+    const rectangle = mapRef.current?.getRectangleRef();
+    if (!rectangle) {
+      console.error('Rectangle reference is null');
+      return;
+    }
+
+    const bounds = rectangle.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+
+    const R = 6371e3; // Earth’s radius in meters
+    const width = (google.maps.geometry.spherical.computeDistanceBetween(
+      new google.maps.LatLng(ne.lat(), sw.lng()),
+      new google.maps.LatLng(ne.lat(), ne.lng())
+    ) / 1609.34).toFixed(2); // Convert meters to miles
+
+    const height = (google.maps.geometry.spherical.computeDistanceBetween(
+      new google.maps.LatLng(ne.lat(), sw.lng()),
+      new google.maps.LatLng(sw.lat(), sw.lng())
+    ) / 1609.34).toFixed(2); // Convert meters to miles
+
+    const cost = calculateTokenCost(
+      { lat: ne.lat(), lng: sw.lng() },
+      { lat: sw.lat(), lng: ne.lng() }
+    );
+    setTokenCost(cost);
+    setShowModal(true);
+    setRectangleSize({ width, height });
+  };
+
+  const confirmSearch = async () => {
+    setLoading(true);
+    setLoadingMessage('Fetching images...');
+    setCourtCount(null); // Reset court count before a new search
+    if (mapRef.current) {
+      const courts = await mapRef.current.findCourts(); // Await the API call and get the courts found
+      setCourtCount(courts.length); // Update the court count
+      setLoading(false); // Stop loading once courts are found
+      setLoadingMessage(''); // Clear loading message
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setCourtCount(null); // Reset the court count when modal closes
+    setLoading(false); // Ensure loading is stopped if modal is closed early
+    setLoadingMessage(''); // Clear loading message
   };
 
   useEffect(() => {
@@ -68,39 +175,35 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      {loading && <Spinner />}
       <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} libraries={['places']}>
         <div className="navbar">
-          {/* Left: Logo and Title */}
           <div className="navbar-left">
             <img src={logo} alt="CourtFind Logo" className="logo" />
             <div className="navbar-title">CourtFind!</div>
           </div>
 
-          {/* Center: Location Input */}
           <div className="navbar-middle">
             <div className="custom-bootstrap">
               <InputGroup className="location-search">
                 <Autocomplete
-                  onLoad={(auto) => (autocompleteRef.current = auto)}
-                  onPlaceChanged={() => setLocation(autocompleteRef.current?.getPlace()?.formatted_address || '')}
+                  onLoad={(auto) => {
+                    autocompleteRef.current = auto;
+                  }}
                 >
                   <Form.Control
                     placeholder="Enter location"
                     aria-label="Enter location"
                     value={location}
-                    onKeyPress={handleKeyPress}
                     onChange={(e) => setLocation(e.target.value)}
                   />
                 </Autocomplete>
-                <Button variant="success" onClick={handleSearch}>
+                <Button variant="success" onClick={handleLocationUpdate}>
                   <i className="fas fa-map-marker-alt"></i>
                 </Button>
               </InputGroup>
             </div>
           </div>
 
-          {/* Right: Info, Tokens, and Find Button */}
           <div className="navbar-right">
             <div className="info-container">
               <FaQuestionCircle className="info-button" />
@@ -115,26 +218,38 @@ const App: React.FC = () => {
                   <span>Tokens reset daily</span>
                 </div>
               </div>
-
             </div>
             <div className="token-display">
               <FaCoins className="token-icon" />
               <span>{tokens} tokens</span>
             </div>
-            <button className="find-button" onClick={() => mapRef.current?.findCourts()}>
+            <button className="find-button" onClick={handleSearch}>
               Find Courts
             </button>
           </div>
         </div>
 
         <div className="map-container">
-          <Map ref={mapRef} />
+          <Map
+            ref={mapRef}
+          />
         </div>
 
         <div className="footer-overlay">
           Dhruv Agarwal | dhruv.agarwals@gmail.com
         </div>
       </LoadScript>
+
+      <CustomModal
+        show={showModal}
+        onClose={handleCloseModal}
+        onConfirm={confirmSearch}
+        tokenCost={tokenCost}
+        rectangleSize={rectangleSize}
+        courtCount={courtCount}
+        loading={loading} // Pass loading state
+        loadingMessage={loadingMessage} // Pass loading message
+      />
     </div>
   );
 };

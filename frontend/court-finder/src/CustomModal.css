@@ -1,0 +1,84 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: #293241;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .rectangle-size {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 10px;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+  }
+  
+  .modal-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .modal-button.cancel {
+    background-color: #ccc;
+    color: #333;
+  }
+  
+  .modal-button.cancel:hover {
+    background-color: #bbb;
+  }
+  
+  .modal-button.confirm {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .modal-button.confirm:hover {
+    background-color: #3a813d;
+  }
+  
+  /* Spinner animation */
+  .spinner-tennis {
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .spinning-tennis-ball {
+    font-size: 50px; /* Size of the tennis ball icon */
+    color: #4caf50;
+    animation: spin 2.5s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  

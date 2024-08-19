@@ -114,13 +114,12 @@ def find_courts():
         return jsonify({"error": "Please provide top-left and bottom-right coordinates"}), 400
 
     coords = get_grid_coordinates((lat_top_left, lon_top_left), (lat_bottom_right, lon_bottom_right))
-    
+    print(len(coords))
     
     # Notify client that image fetching is starting
     socketio.emit('status', {'message': 'Fetching images'})
     
     images = asyncio.run(get_google_maps_images_async(coords))
-    print(len(images))
     # Notify client that image fetching is complete and scanning is starting
     socketio.emit('status', {'message': 'Scanning region'})
     
@@ -135,8 +134,12 @@ def find_courts():
                     "latitude": coords[i][0],
                     "longitude": coords[i][1]
                 })
+
+    # Notify client that scanning is complete
+    socketio.emit('complete', {'courtCount': len(tennis_courts)})
     
     return jsonify({"tennis_courts": tennis_courts})
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
