@@ -4,18 +4,18 @@ html, body, #root, .App {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #293241; /* Dark background color */
-  color: #ffffff; /* Light text color for dark theme */
+  background-color: #293241;
+  color: #ffffff;
   position: relative;
-  font-family: 'Arial', sans-serif; /* Consistent font for entire app */
+  font-family: 'Arial', sans-serif;
 }
 
 .navbar {
   width: 100%;
-  height: 9%; /* Fixed height for the navbar */
+  height: 9%;
   background-color: #293241;
   color: #ffffff;
-  padding: 0 20px; /* Adjust padding to better center items */
+  padding: 0 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,7 +47,7 @@ html, body, #root, .App {
 
 .location-search {
   width: 200%;
-  max-width: 700px; /* Increase max-width to make the search bar wider */
+  max-width: 700px;
 }
 
 .navbar-right {
@@ -75,7 +75,7 @@ html, body, #root, .App {
 }
 
 .info-button:focus {
-  outline: none; /* Remove outline on click */
+  outline: none;
 }
 
 .info-popup {
@@ -85,12 +85,12 @@ html, body, #root, .App {
   transform: translateX(-50%);
   background-color: #272727;
   color: #fff;
-  padding: 8px; /* Adjust padding to reduce size */
+  padding: 8px;
   border-radius: 5px;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
-  min-width: 220px; /* Set a minimum width to fit the text */
-  max-width: 300px; /* Ensure the popup doesn’t get too wide */
-  text-align: left; /* Align text to the left */
+  min-width: 220px;
+  max-width: 300px;
+  text-align: left;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -103,7 +103,7 @@ html, body, #root, .App {
 }
 
 .info-container:hover .info-button {
-  transform: rotate(360deg); /* Rotating effect */
+  transform: rotate(360deg);
 }
 
 .token-display {
@@ -142,7 +142,7 @@ html, body, #root, .App {
 
 .map-container {
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 82px);
   position: relative;
   top: 0;
   overflow: hidden;
@@ -155,14 +155,12 @@ html, body, #root, .App {
   background-color: rgba(41, 50, 65);
   color: #b0b0b0;
   padding: 5px 10px;
-  border-radius: 5px;
-  border-bottom-left-radius: 0px;
+  border-top-right-radius: 5px;
   font-size: 0.8em;
   text-align: right;
   z-index: 10;
 }
 
-/* Spinner */
 .spinner-overlay {
   position: fixed;
   top: 0;
@@ -193,16 +191,16 @@ html, body, #root, .App {
 .info-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6px; /* Reduce margin to tighten spacing */
-  font-size: 0.9em; /* Reduce font size */
+  margin-bottom: 6px;
+  font-size: 0.9em;
 }
 
 .info-icon {
-  color: inherit; 
+  color: inherit;
   border-radius: 50%;
-  padding: 4px; /* Reduce padding */
-  margin-right: 6px; /* Reduce margin between icon and text */
-  font-size: 18px; /* Decrease icon size */
+  padding: 4px;
+  margin-right: 6px;
+  font-size: 18px;
   display: inline-block;
   overflow: visible;
 }
@@ -217,4 +215,47 @@ html, body, #root, .App {
 
 .info-item span {
   white-space: nowrap;
+}
+
+.gm-style-iw-c button {
+  display: none !important;
+}
+
+.modal-button.confirm:disabled {
+  background-color: #b3b3b3;
+  color: #666666;
+  cursor: not-allowed;
+  border: 1px solid #999999;
+}
+
+.modal-button.confirm:disabled:hover::after {
+  content: "You don't have enough tokens. Tokens reset daily at midnight.";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  background-color: #333;
+  color: #fff;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 10;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.modal-button.confirm:disabled:hover {
+  background-color: #b3b3b3;
+  color: #666666;
+  border: 1px solid #999999;
+}
+
+.modal-button.confirm {
+  position: relative;
+}
+
+.modal-button.confirm:hover::after {
+  content: "";
 }

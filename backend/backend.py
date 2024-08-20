@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import math
 from flask_socketio import SocketIO, emit
 import cv2
+from geopy.distance import geodesic
 
 load_dotenv()
 app = Flask(__name__)
@@ -38,6 +39,17 @@ async def get_google_maps_images_async(coords):
             tasks.append(fetch_image(session, url))
         images = await asyncio.gather(*tasks)
     return images
+
+def combine_close_courts(tennis_courts, new_court, proximity=200):
+    for court in tennis_courts:
+        distance = geodesic((court["latitude"], court["longitude"]), (new_court["latitude"], new_court["longitude"])).meters
+        if distance < proximity:
+            # Average the locations
+            court["latitude"] = (court["latitude"] + new_court["latitude"]) / 2
+            court["longitude"] = (court["longitude"] + new_court["longitude"]) / 2
+            return tennis_courts
+    tennis_courts.append(new_court)
+    return tennis_courts
 
 def preprocess_image(img):
     try:
@@ -102,6 +114,32 @@ def get_grid_coordinates(top_left, bottom_right, box_size=140):
         lat -= d_lat
 
     return coords
+    
+def divide_image_into_quadrants(img):
+    width, height = img.size
+    mid_width = width // 2
+    mid_height = height // 2
+    
+    quadrant1 = img.crop((0, 0, mid_width, mid_height))
+    quadrant2 = img.crop((mid_width, 0, width, mid_height))
+    quadrant3 = img.crop((0, mid_height, mid_width, height))
+    quadrant4 = img.crop((mid_width, mid_height, width, height))
+    
+    return [quadrant1, quadrant2, quadrant3, quadrant4]
+
+def get_quadrant_coordinates(center_coords, quadrant_index, box_size=140):
+    lat, lon = center_coords
+    delta_lat = box_size / 4 / 111111  # 111111 meters per degree latitude
+    delta_lon = box_size / 4 / (111111 * math.cos(math.radians(lat)))
+    
+    if quadrant_index == 0:  # top-left quadrant
+        return (lat + delta_lat, lon - delta_lon)
+    elif quadrant_index == 1:  # top-right quadrant
+        return (lat + delta_lat, lon + delta_lon)
+    elif quadrant_index == 2:  # bottom-left quadrant
+        return (lat - delta_lat, lon - delta_lon)
+    elif quadrant_index == 3:  # bottom-right quadrant
+        return (lat - delta_lat, lon + delta_lon)
 
 @app.route('/find-courts', methods=['GET'])
 def find_courts():
@@ -113,33 +151,50 @@ def find_courts():
     if not (lat_top_left and lon_top_left and lat_bottom_right and lon_bottom_right):
         return jsonify({"error": "Please provide top-left and bottom-right coordinates"}), 400
 
-    coords = get_grid_coordinates((lat_top_left, lon_top_left), (lat_bottom_right, lon_bottom_right))
-    print(len(coords))
-    
-    # Notify client that image fetching is starting
-    socketio.emit('status', {'message': 'Fetching images'})
-    
-    images = asyncio.run(get_google_maps_images_async(coords))
-    # Notify client that image fetching is complete and scanning is starting
-    socketio.emit('status', {'message': 'Scanning region'})
-    
-    tennis_courts = []
+    try:
+        coords = get_grid_coordinates((lat_top_left, lon_top_left), (lat_bottom_right, lon_bottom_right))
+        print(len(coords))
+        
+        socketio.emit('status', {'message': 'Fetching images'})
+        
+        images = asyncio.run(get_google_maps_images_async(coords))
+        
+        socketio.emit('status', {'message': 'Scanning region'})
+        
+        tennis_courts = []
 
-    for i, img in enumerate(images):
-        if img:
-            img_array = preprocess_image(img)
-            prediction = model.predict(img_array)
-            if is_tennis_court(prediction):
-                tennis_courts.append({
-                    "latitude": coords[i][0],
-                    "longitude": coords[i][1]
-                })
+        for i, img in enumerate(images):
+            if img:
+                img_array = preprocess_image(img)
+                prediction = model.predict(img_array)
+                if is_tennis_court(prediction):
+                    new_court = {
+                        "latitude": coords[i][0],
+                        "longitude": coords[i][1]
+                    }
+                    tennis_courts = combine_close_courts(tennis_courts, new_court, proximity=200)
+                    
+                    quadrants = divide_image_into_quadrants(img)
+                    
+                    for j, quadrant in enumerate(quadrants):
+                        quadrant_array = preprocess_image(quadrant)
+                        quadrant_prediction = model.predict(quadrant_array)
+                        if is_tennis_court(quadrant_prediction):
+                            quadrant_coords = get_quadrant_coordinates(coords[i], j)
+                            quadrant_court = {
+                                "latitude": quadrant_coords[0],
+                                "longitude": quadrant_coords[1]
+                            }
+                            tennis_courts = combine_close_courts(tennis_courts, quadrant_court, proximity=200)
 
-    # Notify client that scanning is complete
-    socketio.emit('complete', {'courtCount': len(tennis_courts)})
-    
-    return jsonify({"tennis_courts": tennis_courts})
+        socketio.emit('complete', {'courtCount': len(tennis_courts)})
+        print(tennis_courts)
+        return jsonify({"tennis_courts": tennis_courts})
 
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        socketio.emit('error', {'message': 'Something went wrong during court detection.'})
+        return jsonify({"error": "An error occurred during processing"}), 500
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

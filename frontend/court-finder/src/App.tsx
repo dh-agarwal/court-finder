@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import Map from './Map';
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
-import { useToken } from './TokenContext';
+import { useToken } from './useToken';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './bootstrap-custom.css';
 import './App.css';
@@ -11,21 +11,22 @@ import { Form, InputGroup, Button } from 'react-bootstrap';
 import logo from './assets/logo.png';
 import CustomModal from './CustomModal';
 
-const socket = io('http://localhost:5000'); // Connect to your Flask server
+const socket = io('http://localhost:5000');
 
-const App: React.FC = () => {
-  const mapRef = useRef<{ updateLocation: (center: { lat: number; lng: number }) => void; findCourts: () => void; getRectangleRef: () => google.maps.Rectangle | null } | null>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [location, setLocation] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [loadingMessage, setLoadingMessage] = useState<string>(''); // For loading messages
-  const { tokens } = useToken();
+const App = () => {
+  const mapRef = useRef(null);
+  const autocompleteRef = useRef(null);
+  const [location, setLocation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const { tokens, spendTokens } = useToken();
 
   const [showModal, setShowModal] = useState(false);
   const [tokenCost, setTokenCost] = useState(0);
-  const [newCenter, setNewCenter] = useState<{ lat: number; lng: number } | null>(null);
-  const [rectangleSize, setRectangleSize] = useState<{ width: string; height: string }>({ width: '', height: '' });
-  const [courtCount, setCourtCount] = useState<number | null>(null);
+  const [newCenter, setNewCenter] = useState(null);
+  const [rectangleSize, setRectangleSize] = useState({ width: '', height: '' });
+  const [courtCount, setCourtCount] = useState(null);
+  const [error, setError] = useState(null);  // Error state
 
   useEffect(() => {
     socket.on('status', (data) => {
@@ -33,17 +34,23 @@ const App: React.FC = () => {
     });
 
     socket.on('complete', (data) => {
-      setLoading(false);  // Stop the loading spinner
-      setCourtCount(data.courtCount);  // Assuming courtCount is sent in the final response
+      setLoading(false);
+      setCourtCount(data.courtCount);
+    });
+
+    socket.on('error', (data) => {
+      setLoading(false);
+      setError(data.message);  // Set error message
     });
 
     return () => {
       socket.off('status');
       socket.off('complete');
+      socket.off('error');
     };
   }, []);
 
-  const handleLocationUpdate = () => {
+  const handlePlaceChanged = () => {
     const place = autocompleteRef.current?.getPlace();
     if (place?.geometry?.location) {
       const center = {
@@ -61,11 +68,10 @@ const App: React.FC = () => {
     }
   };
 
-  // Function to calculate the token cost
-  const calculateTokenCost = (topLeft: { lat: number; lng: number }, bottomRight: { lat: number; lng: number }, boxSize = 140) => {
-    const toRadians = (degrees: number) => degrees * (Math.PI / 180);
+  const calculateTokenCost = (topLeft, bottomRight, boxSize = 140) => {
+    const toRadians = (degrees) => degrees * (Math.PI / 180);
 
-    const R = 6371e3; // Earth's radius in meters
+    const R = 6371e3;
     const latStart = topLeft.lat;
     const lonStart = topLeft.lng;
     const latEnd = bottomRight.lat;
@@ -105,16 +111,16 @@ const App: React.FC = () => {
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
 
-    const R = 6371e3; // Earth’s radius in meters
+    const R = 6371e3;
     const width = (google.maps.geometry.spherical.computeDistanceBetween(
       new google.maps.LatLng(ne.lat(), sw.lng()),
       new google.maps.LatLng(ne.lat(), ne.lng())
-    ) / 1609.34).toFixed(2); // Convert meters to miles
+    ) / 1609.34).toFixed(2);
 
     const height = (google.maps.geometry.spherical.computeDistanceBetween(
       new google.maps.LatLng(ne.lat(), sw.lng()),
       new google.maps.LatLng(sw.lat(), sw.lng())
-    ) / 1609.34).toFixed(2); // Convert meters to miles
+    ) / 1609.34).toFixed(2);
 
     const cost = calculateTokenCost(
       { lat: ne.lat(), lng: sw.lng() },
@@ -126,22 +132,26 @@ const App: React.FC = () => {
   };
 
   const confirmSearch = async () => {
-    setLoading(true);
-    setLoadingMessage('Fetching images...');
-    setCourtCount(null); // Reset court count before a new search
-    if (mapRef.current) {
-      const courts = await mapRef.current.findCourts(); // Await the API call and get the courts found
-      setCourtCount(courts.length); // Update the court count
-      setLoading(false); // Stop loading once courts are found
-      setLoadingMessage(''); // Clear loading message
+    if (tokens >= tokenCost) {
+      spendTokens(tokenCost);
+      setLoading(true);
+      setLoadingMessage('Fetching images...');
+      setCourtCount(null);
+      setError(null);  // Clear previous errors
+      if (mapRef.current) {
+        await mapRef.current.findCourts();
+        setLoading(false);
+        setLoadingMessage('');
+      }
     }
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setCourtCount(null); // Reset the court count when modal closes
-    setLoading(false); // Ensure loading is stopped if modal is closed early
-    setLoadingMessage(''); // Clear loading message
+    setCourtCount(null);
+    setLoading(false);
+    setLoadingMessage('');
+    setError(null);  // Clear previous errors
   };
 
   useEffect(() => {
@@ -189,6 +199,7 @@ const App: React.FC = () => {
                   onLoad={(auto) => {
                     autocompleteRef.current = auto;
                   }}
+                  onPlaceChanged={handlePlaceChanged}
                 >
                   <Form.Control
                     placeholder="Enter location"
@@ -197,7 +208,7 @@ const App: React.FC = () => {
                     onChange={(e) => setLocation(e.target.value)}
                   />
                 </Autocomplete>
-                <Button variant="success" onClick={handleLocationUpdate}>
+                <Button variant="success" onClick={handlePlaceChanged}>
                   <i className="fas fa-map-marker-alt"></i>
                 </Button>
               </InputGroup>
@@ -232,6 +243,7 @@ const App: React.FC = () => {
         <div className="map-container">
           <Map
             ref={mapRef}
+            setCourtCount={setCourtCount}
           />
         </div>
 
@@ -247,8 +259,10 @@ const App: React.FC = () => {
         tokenCost={tokenCost}
         rectangleSize={rectangleSize}
         courtCount={courtCount}
-        loading={loading} // Pass loading state
-        loadingMessage={loadingMessage} // Pass loading message
+        loading={loading}
+        loadingMessage={loadingMessage}
+        tokens={tokens}
+        error={error}  // Pass the error state to the modal
       />
     </div>
   );
