@@ -15,10 +15,9 @@ const Map = forwardRef((props: MapProps, ref) => {
   const { setCourtCount } = props;
 
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
-  const [tennisCourts, setTennisCourts] = useState<{ lat: number; lng: number }[]>([]);
   const [selectedCourt, setSelectedCourt] = useState<{ lat: number; lng: number } | null>(null);
   const [circles, setCircles] = useState<google.maps.Circle[]>([]);
-  const [mapTypeId, setMapTypeId] = useState<google.maps.MapTypeId>('hybrid');
+  const [mapTypeId, setMapTypeId] = useState<google.maps.MapTypeId>(google.maps.MapTypeId.HYBRID); // Updated
   const rectangleRef = useRef<google.maps.Rectangle | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const initialBoundsRef = useRef<google.maps.LatLngBounds | null>(null);
@@ -165,7 +164,7 @@ const Map = forwardRef((props: MapProps, ref) => {
           lng: court.longitude,
         }));
 
-        setTennisCourts(validCourts);
+        // Removed the unused setTennisCourts call
         setCourtCount(validCourts.length);
 
         validCourts.forEach((court) => {
@@ -205,12 +204,10 @@ const Map = forwardRef((props: MapProps, ref) => {
         });
       } else {
         console.error('Invalid courts data:', courts);
-        setTennisCourts([]);
         setCourtCount(0);
       }
     } catch (error) {
       console.error('Error finding courts:', error);
-      setTennisCourts([]);
       setCourtCount(0);
     }
   };

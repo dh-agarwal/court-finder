@@ -23,7 +23,6 @@ const App: React.FC = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [tokenCost, setTokenCost] = useState(0);
-  const [newCenter, setNewCenter] = useState<google.maps.LatLngLiteral | null>(null);
   const [rectangleSize, setRectangleSize] = useState<{ width: string; height: string }>({ width: '', height: '' });
   const [courtCount, setCourtCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
