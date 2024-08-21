@@ -7,7 +7,11 @@ const containerStyle = {
   height: '100%',
 };
 
-const Map = forwardRef((props, ref) => {
+interface MapProps {
+  setCourtCount: (count: number) => void;
+}
+
+const Map = forwardRef((props: MapProps, ref) => {
   const { setCourtCount } = props;
 
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
@@ -74,14 +78,14 @@ const Map = forwardRef((props, ref) => {
     }
   };
 
-  const handleMapLoad = (map) => {
+  const handleMapLoad = (map: google.maps.Map) => {
     mapRef.current = map;
     initializeMap();
 
     map.addListener('zoom_changed', () => {
       const currentZoom = map.getZoom();
       if (rectangleRef.current) {
-        if (currentZoom >= ZOOM_THRESHOLD) {
+        if (currentZoom && currentZoom >= ZOOM_THRESHOLD) {
           rectangleRef.current.setDraggable(false);
           rectangleRef.current.setEditable(false);
         } else {
@@ -91,13 +95,12 @@ const Map = forwardRef((props, ref) => {
       }
     });
 
-    // Add listener to close InfoWindow when clicking on the map
     map.addListener('click', () => {
       setSelectedCourt(null);
     });
   };
 
-  const updateLocation = (newCenter) => {
+  const updateLocation = (newCenter: google.maps.LatLngLiteral) => {
     if (newCenter) {
       setCenter(newCenter);
       mapRef.current?.panTo(newCenter);
@@ -125,7 +128,7 @@ const Map = forwardRef((props, ref) => {
     setCircles([]);
   };
 
-  const smoothZoom = (map, targetZoom, currentZoom = map.getZoom()) => {
+  const smoothZoom = (map: google.maps.Map, targetZoom: number, currentZoom: number = map.getZoom() || 0) => {
     if (currentZoom !== targetZoom) {
       google.maps.event.addListenerOnce(map, 'zoom_changed', () => {
         smoothZoom(map, targetZoom, currentZoom + (targetZoom > currentZoom ? 1 : -1));
@@ -135,11 +138,12 @@ const Map = forwardRef((props, ref) => {
   };
 
   const findCourts = async () => {
-    clearCircles(); // Clear previous circles
+    clearCircles();
 
     if (!rectangleRef.current) return;
 
     const bounds = rectangleRef.current.getBounds();
+    if (!bounds) return;
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
 
@@ -156,7 +160,7 @@ const Map = forwardRef((props, ref) => {
       const courts = response.data.tennis_courts;
 
       if (courts && Array.isArray(courts)) {
-        const validCourts = courts.map(court => ({
+        const validCourts = courts.map((court: { latitude: number; longitude: number }) => ({
           lat: court.latitude,
           lng: court.longitude,
         }));
@@ -164,17 +168,17 @@ const Map = forwardRef((props, ref) => {
         setTennisCourts(validCourts);
         setCourtCount(validCourts.length);
 
-        validCourts.forEach((court, index) => {
+        validCourts.forEach((court) => {
           const circle = new window.google.maps.Circle({
             center: { lat: court.lat, lng: court.lng },
             radius: 75,
-            fillColor: '#8A84E2',  // Updated initial color
+            fillColor: '#8A84E2',
             fillOpacity: 0.3,
-            strokeColor: '#8A84E2',  // Updated initial color
+            strokeColor: '#8A84E2',
             strokeOpacity: 1,
             strokeWeight: 2,
             map: mapRef.current,
-            zIndex: 1000, // Set zIndex to ensure circles are above the rectangle
+            zIndex: 1000,
           });
 
           circle.addListener('mouseover', () => {
@@ -186,15 +190,15 @@ const Map = forwardRef((props, ref) => {
 
           circle.addListener('mouseout', () => {
             circle.setOptions({
-              fillColor: '#8A84E2',  // Revert to the initial color
-              strokeColor: '#8A84E2',  // Revert to the initial color
+              fillColor: '#8A84E2',
+              strokeColor: '#8A84E2',
             });
           });
 
           circle.addListener('click', () => {
             setSelectedCourt(court);
-            mapRef.current?.panTo(circle.getCenter()); // Center the map on the circle
-            smoothZoom(mapRef.current, 18); // Smoothly zoom into the circle
+            mapRef.current?.panTo(circle.getCenter());
+            smoothZoom(mapRef.current!, 18);
           });
 
           setCircles(prevCircles => [...prevCircles, circle]);
@@ -211,8 +215,8 @@ const Map = forwardRef((props, ref) => {
     }
   };
 
-  const handleMapTypeChange = (event) => {
-    setMapTypeId(event.target.value);
+  const handleMapTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setMapTypeId(event.target.value as google.maps.MapTypeId);
   };
 
   const mapOptions = center
@@ -254,13 +258,12 @@ const Map = forwardRef((props, ref) => {
 
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={center}
+        center={center || undefined}
         zoom={center ? 14 : undefined}
         options={mapOptions}
         onLoad={handleMapLoad}
         onTilesLoaded={initializeRectangle}
       >
-        {/* User's Location Marker */}
         {center && (
           <Marker
             position={center}
@@ -288,11 +291,11 @@ const Map = forwardRef((props, ref) => {
               paddingLeft: '25px',
               color: 'dodgerblue',
               fontSize: '12px',
-              textAlign: 'center', // Center the text
+              textAlign: 'center',
               display: 'flex',
-              justifyContent: 'center', // Center horizontally
-              alignItems: 'center', // Center vertically
-              height: '100%', // Ensure the div takes up full height
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
             }}>
               <u>
                 <a
@@ -304,7 +307,7 @@ const Map = forwardRef((props, ref) => {
                     textDecoration: 'none',
                     fontWeight: 'bold',
                     display: 'flex',
-                    alignItems: 'center', // Align text and icon in the center vertically
+                    alignItems: 'center',
                   }}
                 >
                   Get Directions

@@ -13,9 +13,9 @@ import CustomModal from './CustomModal';
 
 const socket = io('http://localhost:5000');
 
-const App = () => {
-  const mapRef = useRef(null);
-  const autocompleteRef = useRef(null);
+const App: React.FC = () => {
+  const mapRef = useRef<any>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -23,24 +23,24 @@ const App = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [tokenCost, setTokenCost] = useState(0);
-  const [newCenter, setNewCenter] = useState(null);
-  const [rectangleSize, setRectangleSize] = useState({ width: '', height: '' });
-  const [courtCount, setCourtCount] = useState(null);
-  const [error, setError] = useState(null);  // Error state
+  const [newCenter, setNewCenter] = useState<google.maps.LatLngLiteral | null>(null);
+  const [rectangleSize, setRectangleSize] = useState<{ width: string; height: string }>({ width: '', height: '' });
+  const [courtCount, setCourtCount] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    socket.on('status', (data) => {
+    socket.on('status', (data: { message: string }) => {
       setLoadingMessage(data.message);
     });
 
-    socket.on('complete', (data) => {
+    socket.on('complete', (data: { courtCount: number }) => {
       setLoading(false);
       setCourtCount(data.courtCount);
     });
 
-    socket.on('error', (data) => {
+    socket.on('error', (data: { message: string }) => {
       setLoading(false);
-      setError(data.message);  // Set error message
+      setError(data.message);
     });
 
     return () => {
@@ -68,8 +68,8 @@ const App = () => {
     }
   };
 
-  const calculateTokenCost = (topLeft, bottomRight, boxSize = 140) => {
-    const toRadians = (degrees) => degrees * (Math.PI / 180);
+  const calculateTokenCost = (topLeft: google.maps.LatLngLiteral, bottomRight: google.maps.LatLngLiteral, boxSize = 140): number => {
+    const toRadians = (degrees: number) => degrees * (Math.PI / 180);
 
     const R = 6371e3;
     const latStart = topLeft.lat;
@@ -108,10 +108,13 @@ const App = () => {
     }
 
     const bounds = rectangle.getBounds();
+    if (!bounds) {
+      console.error('Bounds are not available');
+      return;
+    }
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
 
-    const R = 6371e3;
     const width = (google.maps.geometry.spherical.computeDistanceBetween(
       new google.maps.LatLng(ne.lat(), sw.lng()),
       new google.maps.LatLng(ne.lat(), ne.lng())
@@ -262,7 +265,7 @@ const App = () => {
         loading={loading}
         loadingMessage={loadingMessage}
         tokens={tokens}
-        error={error}  // Pass the error state to the modal
+        error={error}
       />
     </div>
   );

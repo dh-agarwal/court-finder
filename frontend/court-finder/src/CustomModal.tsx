@@ -2,7 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { GiTennisBall } from 'react-icons/gi';
 import './CustomModal.css';
 
-const CustomModal = ({ show, onClose, onConfirm, tokenCost, rectangleSize, courtCount, loading, loadingMessage, tokens, error }) => {
+interface CustomModalProps {
+  show: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  tokenCost: number;
+  rectangleSize: { width: string; height: string };
+  courtCount: number | null;
+  loading: boolean;
+  loadingMessage: string;
+  tokens: number;
+  error: string | null;
+}
+
+const CustomModal: React.FC<CustomModalProps> = ({ show, onClose, onConfirm, tokenCost, rectangleSize, courtCount, loading, loadingMessage, tokens, error }) => {
   const [dots, setDots] = useState(1);
 
   useEffect(() => {

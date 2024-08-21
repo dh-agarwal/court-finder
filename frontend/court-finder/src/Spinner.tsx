@@ -1,7 +1,11 @@
 import React from 'react';
 import './Spinner.css';
 
-const Spinner = ({ message }) => {
+interface SpinnerProps {
+  message: string;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({ message }) => {
   return (
     <div className="spinner-overlay">
       <div className="spinner"></div>

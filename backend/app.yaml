@@ -1,13 +1,13 @@
-runtime: python
-env: flex
-entrypoint: gunicorn -b :$PORT main:app
+runtime: python39  # Use the latest supported Python version in Standard Environment
 
-runtime_config:
-  python_version: 3.9
+instance_class: F1  # F1 instance class is eligible for free tier
 
-manual_scaling:
-  instances: 1
+automatic_scaling:
+  target_cpu_utilization: 0.6
+  min_instances: 1  # Ensure at least one instance is always running
+  max_instances: 2  # Limit the maximum number of instances to control costs
 
 resources:
-  memory_gb: 2
-  disk_size_gb: 10
+  memory_gb: 0.384  # F1 instance class memory limit is 384 MB
+
+entrypoint: gunicorn -b :$PORT main:app
