@@ -195,9 +195,12 @@ const Map = forwardRef((props: MapProps, ref) => {
           });
 
           circle.addListener('click', () => {
-            setSelectedCourt(court);
-            mapRef.current?.panTo(circle.getCenter());
-            smoothZoom(mapRef.current!, 18);
+            const center = circle.getCenter();
+            if (center) {
+              setSelectedCourt(court);
+              mapRef.current?.panTo(center);
+              smoothZoom(mapRef.current!, 18);
+            }
           });
 
           setCircles(prevCircles => [...prevCircles, circle]);

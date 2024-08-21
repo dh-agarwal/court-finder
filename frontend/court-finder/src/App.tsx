@@ -56,7 +56,6 @@ const App: React.FC = () => {
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
       };
-      setNewCenter(center);
       setLocation(place.formatted_address || '');
 
       if (mapRef.current) {
