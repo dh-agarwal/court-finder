@@ -8,6 +8,7 @@ import './bootstrap-custom.css';
 import './App.css';
 import { FaCoins, FaQuestionCircle, FaSearch, FaClock } from 'react-icons/fa';
 import { Form, InputGroup, Button } from 'react-bootstrap';
+import { Analytics } from "@vercel/analytics/react"
 import logo from './assets/logo.png';
 import CustomModal from './CustomModal';
 
@@ -186,6 +187,7 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
+      <Analytics/>
       <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} libraries={['places']}>
         <div className="navbar">
           <div className="navbar-left">
