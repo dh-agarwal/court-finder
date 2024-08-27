@@ -1,18 +1,16 @@
 .custom-bootstrap .input-group {
   display: flex;
-  /* width: 100%; */
-  /* max-width: 700px; Set a max-width for the input group */
   margin: 0 auto;
 }
 
 .custom-bootstrap .form-control {
-  flex-grow: 1; /* Allow the input field to take up available space */
+  flex-grow: 1;
   border-radius: 5px 0 0 5px;
   width: 20vw;
   background-color: #3a4750;
   color: #ffffff;
   border: 1px solid #fff;
-  font-size:calc(8px + 1.3vmin);
+  font-size:calc(6px + 1.2vmin);
   padding: 10px;
 }
 
@@ -20,23 +18,28 @@
   background-color: #4CAF50;
   border-color: #fff;
   border-radius: 0 5px 5px 0;
-  padding: 10px 20px;
-  /* margin-left: 20%; */
+  padding: 10px 10px;
   border-left: none;
   display: flex;
-  align-items: center; /* Ensure the button is vertically centered */
+  align-items: center;
   transition: background-color 0.3s ease;
-  font-size:calc(8px + 1.3vmin);
+  font-size:calc(6px + 1.2vmin);
+}
+
+@media (min-width: 768px) {
+  .custom-bootstrap .btn-success {
+    padding: 10px 20px;
+  }
 }
 
 .custom-bootstrap .btn-success:hover {
-  background-color: #3a813d; /* Darker green background on hover */
-  border-color: #fff; /* Keep the border color white on hover */
-  border-left: none; /* Ensure left border remains removed on hover */
+  background-color: #3a813d;
+  border-color: #fff;
+  border-left: none;
 }
 
 .custom-bootstrap .form-control::placeholder {
-  color: #b0b0b0; /* A lighter gray to indicate it is a placeholder */
+  color: #b0b0b0;
 }
 
 .btn-success:focus {
