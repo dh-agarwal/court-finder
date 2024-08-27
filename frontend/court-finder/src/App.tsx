@@ -175,17 +175,17 @@ const App: React.FC = () => {
             background-color: #3a4750 !important;
             color: #ffffff !important;
             font-family: Arial, sans-serif !important;
-            font-size: 16px !important;
+            font-size: calc(6px + 1.2vmin) !important;
           }
           .pac-item-query {
-            font-size: 16px !important;
+            font-size: calc(6px + 1.2vmin) !important;
           }
           .pac-item:hover {
             background-color: #4CAF50 !important;
           }
           .pac-item .pac-icon {
             color: #4CAF50 !important;
-            font-size: 20px !important;
+            font-size: calc(6px + 1.2vmin) !important;
           }
         `;
         gmapsIframe.appendChild(style);
