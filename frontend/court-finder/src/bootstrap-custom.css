@@ -10,7 +10,8 @@
   background-color: #3a4750;
   color: #ffffff;
   border: 1px solid #fff;
-  font-size:calc(6px + 1.2vmin);
+  border-right: none;
+  font-size: calc(6px + 1.2vmin);
   padding: 10px;
 }
 
