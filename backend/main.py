@@ -12,28 +12,29 @@ from dotenv import load_dotenv
 import math
 from flask_socketio import SocketIO, emit
 from geopy.distance import geodesic
-from google.cloud import storage
+import boto3
 
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Enable SocketIO
 
-BUCKET_NAME = 'courtfinder-430020.appspot.com'  # Replace with your bucket name
+# S3 configuration
+BUCKET_NAME = 'courtfind-model'
 MODEL_FILENAME = 'tennis_court_classifier.keras'
-LOCAL_MODEL_PATH = 'tennis_court_classifier.keras'
+LOCAL_MODEL_PATH = '/tmp/tennis_court_classifier.keras'
+
+# Google Maps API Key
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 
-def download_model_from_gcs(bucket_name, source_blob_name, destination_file_name):
-    print("Downloading model...")
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(source_blob_name)
-    blob.download_to_filename(destination_file_name)
-    print(f"Model downloaded to {destination_file_name}")
-    
-download_model_from_gcs(BUCKET_NAME, MODEL_FILENAME, LOCAL_MODEL_PATH)
-model = load_model(LOCAL_MODEL_PATH)
+def download_model_from_s3(bucket_name, model_filename, local_model_path):
+    print("Downloading model from S3...")
+    s3 = boto3.client('s3')
+    s3.download_file(bucket_name, model_filename, local_model_path)
+    print("Model downloaded successfully")
+    return load_model(local_model_path)
+
+model = download_model_from_s3(BUCKET_NAME, MODEL_FILENAME, LOCAL_MODEL_PATH)
 
 async def fetch_image(session, url):
     async with session.get(url) as response:

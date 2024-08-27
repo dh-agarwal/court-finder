@@ -27,6 +27,15 @@ const App: React.FC = () => {
   const [rectangleSize, setRectangleSize] = useState<{ width: string; height: string }>({ width: '', height: '' });
   const [courtCount, setCourtCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      return /Mobi|Android/i.test(navigator.userAgent);
+    };
+
+    setIsMobile(checkIfMobile());
+  }, []);
 
   useEffect(() => {
     socket.on('status', (data: { message: string }) => {
@@ -187,12 +196,14 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <Analytics/>
+      <Analytics />
       <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} libraries={['places']}>
         <div className="navbar">
           <div className="navbar-left">
             <img src={logo} alt="CourtFind Logo" className="logo" />
-            <div className="navbar-title">CourtFind!</div>
+            {!isMobile && (
+              <div className="navbar-title">CourtFind!</div>
+            )}
           </div>
 
           <div className="navbar-middle">
@@ -219,20 +230,22 @@ const App: React.FC = () => {
           </div>
 
           <div className="navbar-right">
-            <div className="info-container">
-              <FaQuestionCircle className="info-button" />
+            {!isMobile && (
+              <div className="info-container">
+                <FaQuestionCircle className="info-button" />
 
-              <div className="info-popup">
-                <div className="info-item">
-                  <FaSearch className="info-icon search-icon" />
-                  <span>Costs are based on search size</span>
-                </div>
-                <div className="info-item">
-                  <FaClock className="info-icon clock-icon" />
-                  <span>Tokens reset daily</span>
+                <div className="info-popup">
+                  <div className="info-item">
+                    <FaSearch className="info-icon search-icon" />
+                    <span>Costs are based on search size</span>
+                  </div>
+                  <div className="info-item">
+                    <FaClock className="info-icon clock-icon" />
+                    <span>Tokens reset daily</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             <div className="token-display">
               <FaCoins className="token-icon" />
               <span>{tokens} tokens</span>

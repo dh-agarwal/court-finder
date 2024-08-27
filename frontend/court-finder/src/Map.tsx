@@ -247,7 +247,7 @@ const Map = forwardRef((props: MapProps, ref) => {
             border: '1px solid #ccc',
             backgroundColor: '#293241',
             color: '#ffffff',
-            fontSize: '14px',
+            fontSize: '1.5vh',
             outline: 'none',
           }}
         >

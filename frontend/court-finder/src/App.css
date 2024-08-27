@@ -15,7 +15,7 @@ html, body, #root, .App {
   height: 9%;
   background-color: #293241;
   color: #ffffff;
-  padding: 0 20px;
+  padding: 0 .5%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -28,21 +28,29 @@ html, body, #root, .App {
 }
 
 .logo {
-  width: 55px;
-  height: 55px;
-  margin-right: 10px;
+  width: 7vmin;
+  height: 6.5vmin;
+  margin-right: 3%;
+  min-width: 50px;
+  min-height: 50px;
 }
 
 .navbar-title {
-  font-size: 2.0em;
+  font-size: 4vmin;
   font-weight: bold;
 }
 
 .navbar-middle {
-  margin-left: 5%;
   display: flex;
   justify-content: center;
   flex-grow: 1;
+  margin-left: 5px;
+}
+
+@media (min-width: 768px) {
+  .navbar-middle {
+    margin-left: 10vw;
+  }
 }
 
 .location-search {
@@ -51,6 +59,7 @@ html, body, #root, .App {
 }
 
 .navbar-right {
+  margin-left: 20px;
   display: flex;
   align-items: center;
   margin-right: 2.5%;
@@ -65,7 +74,7 @@ html, body, #root, .App {
   background: none;
   border: none;
   color: #fff;
-  font-size: 1.5em;
+  font-size: 2.5vmin;
   transition: transform 0.5s ease;
   display: flex;
   align-items: center;
@@ -95,6 +104,7 @@ html, body, #root, .App {
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
   z-index: 10;
+  font-size: 1.5vmin;
 }
 
 .info-container:hover .info-popup {
@@ -109,7 +119,7 @@ html, body, #root, .App {
 .token-display {
   display: flex;
   align-items: center;
-  margin-right: 30px;
+  margin-right: calc(10px + 1.5vmin);
 }
 
 .token-icon {
@@ -118,7 +128,7 @@ html, body, #root, .App {
 }
 
 .token-display span {
-  font-size: 1.2em;
+  font-size:calc(8px + 1.3vmin);
   font-weight: bold;
   color: #fff;
 }
@@ -128,10 +138,10 @@ html, body, #root, .App {
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 10px 20px;
+  padding: 1.4vmin 2.8vmin;
   cursor: pointer;
   font-family: 'Arial', sans-serif;
-  font-size: 1.1em;
+  font-size: calc(8px + 1.3vmin);
   font-weight: bold;
   transition: background-color 0.3s ease;
 }
@@ -156,7 +166,7 @@ html, body, #root, .App {
   color: #b0b0b0;
   padding: 5px 10px;
   border-top-right-radius: 5px;
-  font-size: 0.8em;
+  font-size: calc(8px + .5vmin);
   text-align: right;
   z-index: 10;
 }
@@ -200,7 +210,7 @@ html, body, #root, .App {
   border-radius: 50%;
   padding: 4px;
   margin-right: 6px;
-  font-size: 18px;
+  font-size: 2.1vmin;
   display: inline-block;
   overflow: visible;
 }
