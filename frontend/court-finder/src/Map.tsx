@@ -147,7 +147,7 @@ const Map = forwardRef((props: MapProps, ref) => {
     const sw = bounds.getSouthWest();
 
     try {
-      const response = await axios.get('http://localhost:5000/find-courts', {
+      const response = await axios.get('http://3.129.87.210:5000/find-courts', {
         params: {
           lat_top_left: ne.lat(),
           lon_top_left: sw.lng(),
