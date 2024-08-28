@@ -213,4 +213,5 @@ def find_courts():
         return jsonify({"error": "An error occurred during processing"}), 500
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000)
+
