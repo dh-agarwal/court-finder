@@ -35,7 +35,7 @@ def download_model_from_s3(bucket_name, model_filename, local_model_path):
     return load_model(local_model_path)
 
 # model = download_model_from_s3(BUCKET_NAME, MODEL_FILENAME, LOCAL_MODEL_PATH)
-model = load_model(LOCAL_MODEL_PATH)
+# model = load_model(LOCAL_MODEL_PATH)
 
 async def fetch_image(session, url):
     async with session.get(url) as response:
