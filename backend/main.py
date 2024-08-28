@@ -205,7 +205,7 @@ def find_courts():
 
         socketio.emit('complete', {'courtCount': len(tennis_courts)})
         print(tennis_courts)
-        return jsonify({"tennis_courts": [1,2,3]})
+        return jsonify({"tennis_courts": tennis_courts})
 
     except Exception as e:
         print(f"An error occurred: {e}")
