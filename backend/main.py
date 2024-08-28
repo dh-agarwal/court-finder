@@ -35,7 +35,7 @@ def download_model_from_s3(bucket_name, model_filename, local_model_path):
     return load_model(local_model_path)
 
 # model = download_model_from_s3(BUCKET_NAME, MODEL_FILENAME, LOCAL_MODEL_PATH)
-# model = load_model(LOCAL_MODEL_PATH)
+model = load_model(LOCAL_MODEL_PATH)
 
 async def fetch_image(session, url):
     async with session.get(url) as response:
@@ -159,58 +159,58 @@ def get_quadrant_coordinates(center_coords, quadrant_index, box_size=140):
 
 @app.route('/find-courts', methods=['GET'])
 def find_courts():
-    # lat_top_left = float(request.args.get('lat_top_left'))
-    # lon_top_left = float(request.args.get('lon_top_left'))
-    # lat_bottom_right = float(request.args.get('lat_bottom_right'))
-    # lon_bottom_right = float(request.args.get('lon_bottom_right'))
+    lat_top_left = float(request.args.get('lat_top_left'))
+    lon_top_left = float(request.args.get('lon_top_left'))
+    lat_bottom_right = float(request.args.get('lat_bottom_right'))
+    lon_bottom_right = float(request.args.get('lon_bottom_right'))
     
-    # if not (lat_top_left and lon_top_left and lat_bottom_right and lon_bottom_right):
-    #     return jsonify({"error": "Please provide top-left and bottom-right coordinates"}), 400
+    if not (lat_top_left and lon_top_left and lat_bottom_right and lon_bottom_right):
+        return jsonify({"error": "Please provide top-left and bottom-right coordinates"}), 400
 
-    # try:
-    #     coords = get_grid_coordinates((lat_top_left, lon_top_left), (lat_bottom_right, lon_bottom_right))
-    #     print(len(coords))
+    try:
+        coords = get_grid_coordinates((lat_top_left, lon_top_left), (lat_bottom_right, lon_bottom_right))
+        print(len(coords))
         
-    #     socketio.emit('status', {'message': 'Fetching images'})
+        socketio.emit('status', {'message': 'Fetching images'})
         
-    #     images = asyncio.run(get_google_maps_images_async(coords))
+        images = asyncio.run(get_google_maps_images_async(coords))
         
-    #     socketio.emit('status', {'message': 'Scanning region'})
+        socketio.emit('status', {'message': 'Scanning region'})
         
-    #     tennis_courts = []
+        tennis_courts = []
 
-    #     for i, img in enumerate(images):
-    #         if img:
-    #             img_array = preprocess_image(img)
-    #             prediction = model.predict(img_array)
-    #             if is_tennis_court(prediction):
-    #                 new_court = {
-    #                     "latitude": coords[i][0],
-    #                     "longitude": coords[i][1]
-    #                 }
-    #                 tennis_courts = combine_close_courts(tennis_courts, new_court, proximity=200)
+        for i, img in enumerate(images):
+            if img:
+                img_array = preprocess_image(img)
+                prediction = model.predict(img_array)
+                if is_tennis_court(prediction):
+                    new_court = {
+                        "latitude": coords[i][0],
+                        "longitude": coords[i][1]
+                    }
+                    tennis_courts = combine_close_courts(tennis_courts, new_court, proximity=200)
                     
-    #                 quadrants = divide_image_into_quadrants(img)
+                    quadrants = divide_image_into_quadrants(img)
                     
-    #                 for j, quadrant in enumerate(quadrants):
-    #                     quadrant_array = preprocess_image(quadrant)
-    #                     quadrant_prediction = model.predict(quadrant_array)
-    #                     if is_tennis_court(quadrant_prediction):
-    #                         quadrant_coords = get_quadrant_coordinates(coords[i], j)
-    #                         quadrant_court = {
-    #                             "latitude": quadrant_coords[0],
-    #                             "longitude": quadrant_coords[1]
-    #                         }
-    #                         tennis_courts = combine_close_courts(tennis_courts, quadrant_court, proximity=200)
+                    for j, quadrant in enumerate(quadrants):
+                        quadrant_array = preprocess_image(quadrant)
+                        quadrant_prediction = model.predict(quadrant_array)
+                        if is_tennis_court(quadrant_prediction):
+                            quadrant_coords = get_quadrant_coordinates(coords[i], j)
+                            quadrant_court = {
+                                "latitude": quadrant_coords[0],
+                                "longitude": quadrant_coords[1]
+                            }
+                            tennis_courts = combine_close_courts(tennis_courts, quadrant_court, proximity=200)
 
-    #     socketio.emit('complete', {'courtCount': len(tennis_courts)})
-    #     print(tennis_courts)
-    return jsonify({"tennis_courts": [1,2,3]})
+        socketio.emit('complete', {'courtCount': len(tennis_courts)})
+        print(tennis_courts)
+        return jsonify({"tennis_courts": [1,2,3]})
 
-    # except Exception as e:
-    #     print(f"An error occurred: {e}")
-    #     socketio.emit('error', {'message': 'Something went wrong during court detection.'})
-    #     return jsonify({"error": "An error occurred during processing"}), 500
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        socketio.emit('error', {'message': 'Something went wrong during court detection.'})
+        return jsonify({"error": "An error occurred during processing"}), 500
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000)
