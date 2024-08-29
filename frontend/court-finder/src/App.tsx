@@ -12,7 +12,7 @@ import { Analytics } from "@vercel/analytics/react"
 import logo from './assets/logo.png';
 import CustomModal from './CustomModal';
 
-const socket = io('http://3.129.87.210:5000');
+const socket = io('https://api.court-find.com/find-courts');
 
 const App: React.FC = () => {
   const mapRef = useRef<any>(null);
