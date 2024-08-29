@@ -17,14 +17,12 @@ import boto3
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")  # Enable SocketIO
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-# S3 configuration
 BUCKET_NAME = 'courtfind-model'
 MODEL_FILENAME = 'tennis_court_classifier.keras'
 LOCAL_MODEL_PATH = '/tmp/tennis_court_classifier.keras'
 
-# Google Maps API Key
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 
 def download_model_from_s3(bucket_name, model_filename, local_model_path):
@@ -60,7 +58,6 @@ def combine_close_courts(tennis_courts, new_court, proximity=200):
     for court in tennis_courts:
         distance = geodesic((court["latitude"], court["longitude"]), (new_court["latitude"], new_court["longitude"])).meters
         if distance < proximity:
-            # Average the locations
             court["latitude"] = (court["latitude"] + new_court["latitude"]) / 2
             court["longitude"] = (court["longitude"] + new_court["longitude"]) / 2
             return tennis_courts
@@ -69,23 +66,20 @@ def combine_close_courts(tennis_courts, new_court, proximity=200):
 
 def preprocess_image(img):
     try:
-        if isinstance(img, Image.Image):  # If img is a PIL Image object
+        if isinstance(img, Image.Image):
             img = np.array(img)
         
         if img is None:
             print(f"Error: Failed to read image.")
             return None
 
-        # Calculate the cropping based on the 140-meter height
         height, width = img.shape[:2]
         meters_per_pixel = 140 / height  # Assuming 140 meters is the height of the image
-        crop_meters = 0.03 * 140  # 3% of 140 meters
+        crop_meters = 0.03 * 140
         crop_pixels = int(crop_meters / meters_per_pixel)
 
-        # Crop the bottom 3% of the image
         cropped_img = img[:height - crop_pixels, :]
 
-        # Convert to PIL Image for further processing
         img_pil = Image.fromarray(cropped_img)
         img_pil = img_pil.resize((150, 150))
 
@@ -102,7 +96,7 @@ def is_tennis_court(prediction):
     return prediction[0][0] >= 0.5
 
 def get_grid_coordinates(top_left, bottom_right, box_size=140):
-    R = 6371e3  # Earth's radius in meters
+    R = 6371e3
     lat_start, lon_start = top_left
     lat_end, lon_end = bottom_right
     coords = []
@@ -112,7 +106,6 @@ def get_grid_coordinates(top_left, bottom_right, box_size=140):
     lat_end_rad = math.radians(lat_end)
     lon_end_rad = math.radians(lon_end)
 
-    # Calculate latitude and longitude step based on box size
     d_lat = box_size / R
     d_lon = box_size / (R * math.cos((lat_start_rad + lat_end_rad) / 2))
 
@@ -120,7 +113,6 @@ def get_grid_coordinates(top_left, bottom_right, box_size=140):
     while lat > lat_end_rad:
         lon = lon_start_rad
         while lon < lon_end_rad:
-            # Get the center of the box
             center_lat = lat - d_lat / 2
             center_lon = lon + d_lon / 2
 
@@ -148,13 +140,13 @@ def get_quadrant_coordinates(center_coords, quadrant_index, box_size=140):
     delta_lat = box_size / 4 / 111111  # 111111 meters per degree latitude
     delta_lon = box_size / 4 / (111111 * math.cos(math.radians(lat)))
     
-    if quadrant_index == 0:  # top-left quadrant
+    if quadrant_index == 0:
         return (lat + delta_lat, lon - delta_lon)
-    elif quadrant_index == 1:  # top-right quadrant
+    elif quadrant_index == 1:
         return (lat + delta_lat, lon + delta_lon)
-    elif quadrant_index == 2:  # bottom-left quadrant
+    elif quadrant_index == 2:
         return (lat - delta_lat, lon - delta_lon)
-    elif quadrant_index == 3:  # bottom-right quadrant
+    elif quadrant_index == 3:
         return (lat - delta_lat, lon + delta_lon)
     
 @app.route('/')
