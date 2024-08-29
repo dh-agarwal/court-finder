@@ -156,6 +156,10 @@ def get_quadrant_coordinates(center_coords, quadrant_index, box_size=140):
         return (lat - delta_lat, lon - delta_lon)
     elif quadrant_index == 3:  # bottom-right quadrant
         return (lat - delta_lat, lon + delta_lon)
+    
+@app.route('/')
+def index():
+    return "API is running"
 
 @app.route('/find-courts', methods=['GET'])
 def find_courts():
@@ -213,8 +217,5 @@ def find_courts():
         return jsonify({"error": "An error occurred during processing"}), 500
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
 
-@app.route('/')
-def index():
-    return "API is running"
