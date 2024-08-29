@@ -2,7 +2,7 @@ import Cookies from 'js-cookie';
 import { useState, useEffect } from 'react';
 
 export const useToken = () => {
-  const [tokens, setTokens] = useState<number>(1000); // Default value
+  const [tokens, setTokens] = useState<number>(750); // Default value
 
   useEffect(() => {
     // Check if the tokens cookie exists
@@ -13,9 +13,9 @@ export const useToken = () => {
 
     if (lastReset !== today) {
       // Reset tokens daily
-      Cookies.set('tokens', '1000', { expires: 1 }); // reset daily
+      Cookies.set('tokens', '750', { expires: 1 }); // reset daily
       Cookies.set('lastReset', today, { expires: 1 });
-      setTokens(1000);
+      setTokens(750);
     } else if (tokenValue) {
       setTokens(parseInt(tokenValue, 10));
     }

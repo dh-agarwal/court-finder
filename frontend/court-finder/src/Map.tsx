@@ -171,26 +171,26 @@ const Map = forwardRef((props: MapProps, ref) => {
           const circle = new window.google.maps.Circle({
             center: { lat: court.lat, lng: court.lng },
             radius: 75,
-            fillColor: '#8A84E2',
+            fillColor: '#FF6B6B',  // Red color
             fillOpacity: 0.3,
-            strokeColor: '#8A84E2',
+            strokeColor: '#FF6B6B', // Red color
             strokeOpacity: 1,
-            strokeWeight: 2,
+            strokeWeight: 3,
             map: mapRef.current,
             zIndex: 1000,
           });
-
+        
           circle.addListener('mouseover', () => {
             circle.setOptions({
-              fillColor: '#FF6B6B',
-              strokeColor: '#FF6B6B',
+              fillColor: '#FFD166',  // Yellow color
+              strokeColor: '#FFD166', // Yellow color
             });
           });
-
+        
           circle.addListener('mouseout', () => {
             circle.setOptions({
-              fillColor: '#8A84E2',
-              strokeColor: '#8A84E2',
+              fillColor: '#FF6B6B',  // Back to red
+              strokeColor: '#FF6B6B', // Back to red
             });
           });
 
