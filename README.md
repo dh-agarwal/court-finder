@@ -1,6 +1,6 @@
 # court-finder
 
-court-find.com[[court-find.com]]
+[court-find.com](https://court-find.com).
 
 find tennis courts near you
 
