@@ -8,4 +8,5 @@ TensorFlow trained CNN with 20,000 images; VGG16, fine-tuned with 2 dense layers
 
 # Demo:
 
-![court-find](https://github.com/dh-agarwal/court-finder/blob/main/court-find.gif
+![court-find](https://github.com/dh-agarwal/court-finder/blob/main/court-find.gif)
+
