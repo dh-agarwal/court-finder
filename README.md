@@ -7,4 +7,4 @@ Find tennis courts near you!
 TensorFlow trained CNN with 20,000 images; VGG16, fine-tuned with 2 dense layers; 94% weighted accuracy (98% false positive avoidance)
 
 # Demo:
-![court-find](https://jumpshare.com/s/w580MGcmpQwYzjLRrj3e)
+![court-find](https://giphy.com/gifs/GFOVtFlM9oknKwdUlQ)
